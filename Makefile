@@ -7,4 +7,7 @@ install: .FORCE
 pep8: .FORCE
 	pep8 --ignore=E221,E241 sauce/
 
+test: .FORCE
+	PYTHONPATH=. python test.py
+
 .FORCE:
