@@ -1,25 +1,24 @@
 #! /usr/bin/env python
-# 
-#     _____         ____                            _______
-#  __|     |_______|__  |____ ____________ _______ _\__   /_________
-#  \_       _/  _    /       |    _   _   \   _   |   ____\   _    /
-#    |     |    /___/   _    |    /   /   /   /   |  |     |  /___/
-#    |     |____    |___/____|___/___/   /___/____|________|___   |  .COM
-#    |_____|    |___|                \__/                     |___|
-#  
 #
-# (c) 2006, 2009 Wijnand 'tehmaze' Modderman - http://tehmaze.com
+#                          _______
+#    ____________ _______ _\__   /_________        ___  _____
+#   |    _   _   \   _   |   ____\   _    /       |   |/  _  \
+#   |    /   /   /   /   |  |     |  /___/    _   |   |   /  /
+#   |___/___/   /___/____|________|___   |   |_|  |___|_____/
+#           \__/                     |___|
+#
+# (c) 2006-2012 Wijnand Modderman-Lenstra - https://maze.io/
 #
 
 '''
 Parser for SAUCE or Standard Architecture for Universal Comment Extensions.
 '''
 
-__author__    = 'Wijnand Modderman <python@tehmaze.com>'
-__copyright__ = '(C) 2006, 2009 Wijnand Modderman'
+__author__    = 'Wijnand Modderman-Lenstra <maze@pyth0n.org>'
+__copyright__ = '(C) 2006-2012 Wijnand Modderman-Lenstra'
 __license__   = 'LGPL'
-__version__   = '0.1'
-__url__       = 'http://dev.tehmaze.com/code/'
+__version__   = '0.1.1'
+__url__       = 'https://github.com/tehmaze/sauce'
 
 import datetime
 import os
@@ -28,6 +27,7 @@ try:
     from cStringIO import StringIO
 except ImportError:
     from StringIO import StringIO
+
 
 class SAUCE(object):
     '''
@@ -38,7 +38,8 @@ class SAUCE(object):
     :property author:   Name or 'handle' of the creator of the file
     :property datatype: Type of data
     :property date:     Date the file was created
-    :property filesize: Original filesize NOT including any information of SAUCE
+    :property filesize: Original filesize NOT including any information of
+                        SAUCE
     :property group:    Name of the group/company the creator is employed by
     :property title:    Title of the file
 
@@ -65,72 +66,72 @@ class SAUCE(object):
 
     # template
     template  = (
-                    # name           default       size type
-                    ('SAUCE',        'SAUCE',      5,   '5s'),
-                    ('SAUCEVersion', '00',         2,   '2s'),
-                    ('Title',        '\x00' * 35, 35,   '35s'),
-                    ('Author',       '\x00' * 20, 20,   '20s'),
-                    ('Group',        '\x00' * 20, 20,   '20s'),
-                    ('Date',         '\x00' * 8,   8,   '8s'),
-                    ('FileSize',     [0],          4,   'I'),
-                    ('DataType',     [0],          1,   'B'),
-                    ('FileType',     [0],          1,   'B'),
-                    ('TInfo1',       [0],          1,   'H'),
-                    ('TInfo2',       [0],          1,   'H'),
-                    ('TInfo3',       [0],          1,   'H'),
-                    ('TInfo4',       [0],          1,   'H'),
-                    ('Comments',     [0],          1,   'B'),
-                    ('Flags',        [0],          1,   'B'),
-                    ('Filler',       ['\x00']*22, 22,   '22c'),
+        # name           default         size type
+        ('SAUCE',        'SAUCE',        5,   '5s'),
+        ('SAUCEVersion', '00',           2,   '2s'),
+        ('Title',        '\x00' * 35,   35,   '35s'),
+        ('Author',       '\x00' * 20,   20,   '20s'),
+        ('Group',        '\x00' * 20,   20,   '20s'),
+        ('Date',         '\x00' * 8,     8,   '8s'),
+        ('FileSize',     [0],            4,   'I'),
+        ('DataType',     [0],            1,   'B'),
+        ('FileType',     [0],            1,   'B'),
+        ('TInfo1',       [0],            1,   'H'),
+        ('TInfo2',       [0],            1,   'H'),
+        ('TInfo3',       [0],            1,   'H'),
+        ('TInfo4',       [0],            1,   'H'),
+        ('Comments',     [0],            1,   'B'),
+        ('Flags',        [0],            1,   'B'),
+        ('Filler',       ['\x00'] * 22, 22,   '22c'),
     )
     templates = [t[0] for t in template]
     datatypes = ['None', 'Character', 'Graphics', 'Vector', 'Sound',
                  'BinaryText', 'XBin', 'Archive', 'Executable']
     filetypes = {
-            'None': {
-                'filetype': ['Undefined'],
-            },
-            'Character': {
-                'filetype': ['ASCII', 'ANSi', 'ANSiMation', 'RIP', 'PCBoard', 
-                             'Avatar', 'HTML', 'Source'],
-                'flags':    {0: 'None', 1: 'iCE Color'},
-                'tinfo': (
-                    ('width', 'height',     None, None),
-                    ('width', 'height',     None, None),
-                    ('width', 'height',     None, None),
-                    ('width', 'height', 'colors', None),
-                    ('width', 'height',     None, None),
-                    ('width', 'height',     None, None),
-                    (   None,     None,     None, None),
-                ),
-            },
-            'Graphics': {
-                'filetype': ['GIF', 'PCX', 'LBM/IFF', 'TGA', 'FLI', 'FLC', 
-                             'BMP', 'GL', 'DL', 'WPG', 'PNG', 'JPG', 'MPG', 
-                             'AVI'],
-                'tinfo':    (('width', 'height', 'bpp')) * 14,
-            },
-            'Vector': {
-                'filetype': ['DX', 'DWG', 'WPG', '3DS'],
-            },
-            'Sound': {
-                'filetype': ['MOD', '669', 'STM', 'S3M', 'MTM', 'FAR', 'ULT', 
-                             'AMF', 'DMF', 'OKT', 'ROL', 'CMF', 'MIDI', 'SADT',
-                             'VOC', 'WAV', 'SMP8', 'SMP8S', 'SMP16', 'SMP16S',
-                             'PATCH8', 'PATCH16', 'XM', 'HSC', 'IT'],
-                'tinfo':    ((None,)) * 16 + (('Sampling Rate',)) * 4,
-            },
-            'BinaryText': {
-                'flags':    {0: 'None', 1: 'iCE Color'},
-            },
-            'XBin': {
-                'tinfo':    (('width', 'height'),),
-            },
-            'Archive': {
-                'filetype': ['ZIP', 'ARJ', 'LZH', 'ARC', 'TAR', 'ZOO', 'RAR', 
-                             'UC2', 'PAK', 'SQZ'],
-            },
-        }
+        'None': {
+            'filetype': ['Undefined'],
+        },
+        'Character': {
+            'filetype': ['ASCII', 'ANSi', 'ANSiMation', 'RIP', 'PCBoard',
+                         'Avatar', 'HTML', 'Source'],
+            'flags':    {0: 'None', 1: 'iCE Color'},
+            'tinfo': (
+                ('width', 'height',     None, None),
+                ('width', 'height',     None, None),
+                ('width', 'height',     None, None),
+                ('width', 'height', 'colors', None),
+                ('width', 'height',     None, None),
+                ('width', 'height',     None, None),
+                (None,    None,         None, None),
+            ),
+        },
+        'Graphics': {
+            'filetype': ['GIF', 'PCX', 'LBM/IFF', 'TGA', 'FLI', 'FLC',
+                         'BMP', 'GL', 'DL', 'WPG', 'PNG', 'JPG', 'MPG',
+                         'AVI'],
+            'tinfo':    (('width', 'height', 'bpp')) * 14,
+        },
+        'Vector': {
+            'filetype': ['DX', 'DWG', 'WPG', '3DS'],
+        },
+        'Sound': {
+            'filetype': ['MOD', '669', 'STM', 'S3M', 'MTM', 'FAR', 'ULT',
+                         'AMF', 'DMF', 'OKT', 'ROL', 'CMF', 'MIDI', 'SADT',
+                         'VOC', 'WAV', 'SMP8', 'SMP8S', 'SMP16', 'SMP16S',
+                         'PATCH8', 'PATCH16', 'XM', 'HSC', 'IT'],
+            'tinfo':    ((None,)) * 16 + (('Sampling Rate',)) * 4,
+        },
+        'BinaryText': {
+            'flags':    {0: 'None', 1: 'iCE Color'},
+        },
+        'XBin': {
+            'tinfo':    (('width', 'height'),),
+        },
+        'Archive': {
+            'filetype': ['ZIP', 'ARJ', 'LZH', 'ARC', 'TAR', 'ZOO', 'RAR',
+                         'UC2', 'PAK', 'SQZ'],
+        },
+    }
 
     def __init__(self, filename='', data=''):
         assert (filename or data), 'Need either filename or record'
@@ -151,7 +152,7 @@ class SAUCE(object):
         return ''.join(list(self._read_file()))
 
     def _read_file(self):
-        # Buffered reader (generator), reads the original file without SAUCE 
+        # Buffered reader (generator), reads the original file without SAUCE
         # record.
         self.filehand.seek(0)
         # Check if we have SAUCE data
@@ -174,7 +175,7 @@ class SAUCE(object):
 
     def _gets(self, key):
         name, default, offset, size, stype = self._template(key)
-        data = self.record[offset:offset+size]
+        data = self.record[offset:offset + size]
         data = struct.unpack(stype, data)
         if stype[-1] in 'cs':
             return ''.join(data)
@@ -191,7 +192,7 @@ class SAUCE(object):
         self.record = ''.join([
             self.record[:offset],
             struct.pack(stype, data),
-            self.record[offset+size:]
+            self.record[offset + size:]
         ])
         return self.record
 
@@ -216,7 +217,6 @@ class SAUCE(object):
                 else:
                     data += struct.pack(stype, *default)
             return data
-
 
     def write(self, filename):
         '''
@@ -248,7 +248,7 @@ class SAUCE(object):
 
     def set_datatype(self, datatype):
         if type(datatype) == str:
-            datatype = datatype.lower().title() # fOoBAR -> Foobar
+            datatype = datatype.lower().title()  # fOoBAR -> Foobar
             datatype = self.recordtypes.index(datatype)
         self._puts('DataType', datatype)
 
@@ -286,7 +286,7 @@ class SAUCE(object):
 
         if datatype in self.filetypes and \
             'filetype' in self.filetypes[datatype] and \
-            filetype <= len(self.filetypes[datatype]['filetype']):
+                filetype <= len(self.filetypes[datatype]['filetype']):
             return self.filetypes[datatype]['filetype'][filetype]
         else:
             return None
@@ -309,7 +309,7 @@ class SAUCE(object):
 
         if datatype in self.filetypes and \
             'flags' in self.filetypes[datatype] and \
-            filetype <= len(self.filetypes[datatype]['filetype']):
+                filetype <= len(self.filetypes[datatype]['filetype']):
             return self.filetypes[datatype]['filetype'][filetype]
         else:
             return None
@@ -373,4 +373,3 @@ if __name__ == '__main__':
             print 'No SAUCE record found'
             test = SAUCE(data=test.sauce())
             show(test)
-
