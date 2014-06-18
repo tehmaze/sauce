@@ -17,7 +17,7 @@ Parser for SAUCE or Standard Architecture for Universal Comment Extensions.
 __author__    = 'Wijnand Modderman-Lenstra <maze@pyth0n.org>'
 __copyright__ = '(C) 2006-2012 Wijnand Modderman-Lenstra'
 __license__   = 'LGPL'
-__version__   = '0.2.1'
+__version__   = '1.0'
 __url__       = 'https://github.com/tehmaze/sauce'
 
 import datetime
@@ -76,10 +76,10 @@ class SAUCE(object):
         ('FileSize',     [0],            4,   'I'),
         ('DataType',     [0],            1,   'B'),
         ('FileType',     [0],            1,   'B'),
-        ('TInfo1',       [0],            1,   'H'),
-        ('TInfo2',       [0],            1,   'H'),
-        ('TInfo3',       [0],            1,   'H'),
-        ('TInfo4',       [0],            1,   'H'),
+        ('TInfo1',       [0],            2,   'H'),
+        ('TInfo2',       [0],            2,   'H'),
+        ('TInfo3',       [0],            2,   'H'),
+        ('TInfo4',       [0],            2,   'H'),
         ('Comments',     [0],            1,   'B'),
         ('Flags',        [0],            1,   'B'),
         ('Filler',       ['\x00'] * 22, 22,   '22c'),
@@ -177,6 +177,9 @@ class SAUCE(object):
         return None, self.filehand.read()
 
     def _gets(self, key):
+        if self.record is None:
+            return None
+
         name, default, offset, size, stype = self._template(key)
         data = self.record[offset:offset + size]
         data = struct.unpack(stype, data)
@@ -252,6 +255,8 @@ class SAUCE(object):
 
     def get_datatype_str(self):
         datatype = self.datatype
+        if datatype is None:
+            return None
         if datatype <= len(self.datatypes):
             return self.datatypes[datatype]
         else:
@@ -285,6 +290,16 @@ class SAUCE(object):
 
     def set_filesize(self, size):
         self._puts('FileSize', size)
+
+    def get_filler(self):
+        return self._gets('Filler')
+
+    def get_filler_str(self):
+        filler = self._gets('Filler')
+        if filler is None:
+            return ''
+        else:
+            return filler.rstrip('\x00')
 
     def get_filetype(self):
         return self._gets('FileType')
@@ -335,6 +350,42 @@ class SAUCE(object):
         self._puts('Group', group)
         return self
 
+    def _get_tinfo_name(self, i):
+        datatype = self.datatype_str
+        filetype = self.filetype
+
+        if datatype is None or filetype is None:
+            return None
+
+        try:
+            return self.filetypes[datatype]['tinfo'][filetype][i - 1]
+        except (KeyError, IndexError):
+            return ''
+
+    def get_tinfo1(self):
+        return self._gets('TInfo1')[0]
+
+    def get_tinfo1_name(self):
+        return self._get_tinfo_name(1)
+
+    def get_tinfo2(self):
+        return self._gets('TInfo2')[0]
+
+    def get_tinfo2_name(self):
+        return self._get_tinfo_name(2)
+
+    def get_tinfo3(self):
+        return self._gets('TInfo3')[0]
+
+    def get_tinfo3_name(self):
+        return self._get_tinfo_name(3)
+
+    def get_tinfo4(self):
+        return self._gets('TInfo4')[0]
+
+    def get_tinfo4_name(self):
+        return self._get_tinfo_name(4)
+
     def get_title(self):
         return self._gets('Title').strip()
 
@@ -351,15 +402,26 @@ class SAUCE(object):
 
     # properties
     author       = property(get_author,   set_author)
+    comments     = property(get_comments, set_comments)
     datatype     = property(get_datatype, set_datatype)
     datatype_str = property(get_datatype_str)
     date         = property(get_date,     set_date)
     filesize     = property(get_filesize, set_filesize)
     filetype     = property(get_filetype, set_filetype)
     filetype_str = property(get_filetype_str)
+    filler       = property(get_filler)
+    filler_str   = property(get_filler_str)
     flags        = property(get_flags,    set_flags)
     flags_str    = property(get_flags_str)
     group        = property(get_group,    set_group)
+    tinfo1       = property(get_tinfo1)
+    tinfo1_name  = property(get_tinfo1_name)
+    tinfo2       = property(get_tinfo2)
+    tinfo2_name  = property(get_tinfo2_name)
+    tinfo3       = property(get_tinfo3)
+    tinfo3_name  = property(get_tinfo3_name)
+    tinfo4       = property(get_tinfo4)
+    tinfo4_name  = property(get_tinfo4_name)
     title        = property(get_title,    set_title)
     version      = property(get_version)
 
@@ -381,8 +443,13 @@ if __name__ == '__main__':
             print 'FileSize:', sauce.filesize
             print 'DataType:', sauce.datatype, sauce.datatype_str
             print 'FileType:', sauce.filetype, sauce.filetype_str
+            print 'TInfo1..:', sauce.tinfo1
+            print 'TInfo2..:', sauce.tinfo2
+            print 'TInfo3..:', sauce.tinfo3
+            print 'TInfo4..:', sauce.tinfo4
             print 'Flags...:', sauce.flags, sauce.flags_str
             print 'Record..:', len(sauce.record), repr(sauce.record)
+            print 'Filler..:', sauce.filler_str
 
         if test.record:
             show(test)
