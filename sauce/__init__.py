@@ -17,7 +17,7 @@ Parser for SAUCE or Standard Architecture for Universal Comment Extensions.
 __author__    = 'Wijnand Modderman-Lenstra <maze@pyth0n.org>'
 __copyright__ = '(C) 2006-2012 Wijnand Modderman-Lenstra'
 __license__   = 'LGPL'
-__version__   = '0.1.1'
+__version__   = '0.2.1'
 __url__       = 'https://github.com/tehmaze/sauce'
 
 import datetime
@@ -146,7 +146,7 @@ class SAUCE(object):
             self._size = len(data)
             self.filehand = StringIO(data)
 
-        self.record = self._read()
+        self.record, self.data = self._read()
 
     def __str__(self):
         return ''.join(list(self._read_file()))
@@ -170,8 +170,11 @@ class SAUCE(object):
             self.filehand.seek(self._size - 128)
             record = self.filehand.read(128)
             if record.startswith('SAUCE'):
-                return record
-        return None
+                self.filehand.seek(0)
+                return record, self.filehand.read(self._size - 128)
+
+        self.filehand.seek(0)
+        return None, self.filehand.read()
 
     def _gets(self, key):
         name, default, offset, size, stype = self._template(key)
@@ -235,6 +238,14 @@ class SAUCE(object):
 
     def set_author(self, author):
         self._puts('Author', author)
+        return self
+
+    def get_comments(self):
+        return self._gets('Comments')
+
+    def set_comments(self, comments):
+        self._puts('Comments', comments)
+        return self
 
     def get_datatype(self):
         return self._gets('DataType')
@@ -251,6 +262,7 @@ class SAUCE(object):
             datatype = datatype.lower().title()  # fOoBAR -> Foobar
             datatype = self.recordtypes.index(datatype)
         self._puts('DataType', datatype)
+        return self
 
     def get_date(self):
         return self._gets('Date')
@@ -266,6 +278,7 @@ class SAUCE(object):
         elif type(date) in [int, long, float]:
             date = datetime.datetime.fromtimestamp(date).strftime(format)
         self._puts('Date', date)
+        return self
 
     def get_filesize(self):
         return self._gets('FileSize')
@@ -274,8 +287,7 @@ class SAUCE(object):
         self._puts('FileSize', size)
 
     def get_filetype(self):
-        datatype = self.datatype
-        filetype = self._gets('FileType')
+        return self._gets('FileType')
 
     def get_filetype_str(self):
         datatype = self.datatype_str
@@ -293,12 +305,14 @@ class SAUCE(object):
 
     def set_filetype(self, filetype):
         self._puts('FileType', filetype)
+        return self
 
     def get_flags(self):
         return self._gets('Flags')
 
     def set_flags(self, flags):
         self._puts('Flags', flags)
+        return self
 
     def get_flags_str(self):
         datatype = self.datatype_str
@@ -319,18 +333,21 @@ class SAUCE(object):
 
     def set_group(self, group):
         self._puts('Group', group)
+        return self
 
     def get_title(self):
         return self._gets('Title').strip()
 
     def set_title(self, title):
         self._puts('Title', title)
+        return self
 
     def get_version(self):
         return self._gets('SAUCEVersion')
 
     def set_version(self, version):
         self._puts('SAUCEVersion', version)
+        return self
 
     # properties
     author       = property(get_author,   set_author)
