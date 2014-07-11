@@ -17,7 +17,7 @@ Parser for SAUCE or Standard Architecture for Universal Comment Extensions.
 __author__    = 'Wijnand Modderman-Lenstra <maze@pyth0n.org>'
 __copyright__ = '(C) 2006-2012 Wijnand Modderman-Lenstra'
 __license__   = 'LGPL'
-__version__   = '1.0'
+__version__   = '1.1'
 __url__       = 'https://github.com/tehmaze/sauce'
 
 import datetime
@@ -257,7 +257,7 @@ class SAUCE(object):
         datatype = self.datatype
         if datatype is None:
             return None
-        if datatype <= len(self.datatypes):
+        if datatype < len(self.datatypes):
             return self.datatypes[datatype]
         else:
             return None
@@ -313,7 +313,7 @@ class SAUCE(object):
 
         if datatype in self.filetypes and \
             'filetype' in self.filetypes[datatype] and \
-                filetype <= len(self.filetypes[datatype]['filetype']):
+                filetype < len(self.filetypes[datatype]['filetype']):
             return self.filetypes[datatype]['filetype'][filetype]
         else:
             return None
@@ -338,7 +338,7 @@ class SAUCE(object):
 
         if datatype in self.filetypes and \
             'flags' in self.filetypes[datatype] and \
-                filetype <= len(self.filetypes[datatype]['filetype']):
+                filetype < len(self.filetypes[datatype]['filetype']):
             return self.filetypes[datatype]['filetype'][filetype]
         else:
             return None
