@@ -192,7 +192,7 @@ class SAUCE(object):
 
     def _puts(self, key, data):
         name, default, offset, size, stype = self._template(key)
-        print offset, size, data, repr(struct.pack(stype, data))
+        #print offset, size, data, repr(struct.pack(stype, data))
         if self.record is None:
             self.record = self.sauce()
         self.record = ''.join([
@@ -217,7 +217,7 @@ class SAUCE(object):
         else:
             data = 'SAUCE'
             for name, default, size, stype in self.template[1:]:
-                print stype, default
+                #print stype, default
                 if stype[-1] in 's':
                     data += struct.pack(stype, default)
                 else:
@@ -265,7 +265,7 @@ class SAUCE(object):
     def set_datatype(self, datatype):
         if type(datatype) == str:
             datatype = datatype.lower().title()  # fOoBAR -> Foobar
-            datatype = self.recordtypes.index(datatype)
+            datatype = self.datatypes.index(datatype)
         self._puts('DataType', datatype)
         return self
 
@@ -319,6 +319,10 @@ class SAUCE(object):
             return None
 
     def set_filetype(self, filetype):
+        datatype = self.datatype_str
+        if type(filetype) == str:
+            filetype = filetype.lower().title()  # fOoBAR -> Foobar
+            filetype = [name.lower().title() for name in self.filetypes[datatype]['filetype']].index(filetype)
         self._puts('FileType', filetype)
         return self
 
@@ -368,11 +372,19 @@ class SAUCE(object):
     def get_tinfo1_name(self):
         return self._get_tinfo_name(1)
 
+    def set_tinfo1(self, tinfo):
+        self._puts('TInfo1', tinfo)
+        return self
+
     def get_tinfo2(self):
         return self._gets('TInfo2')[0]
 
     def get_tinfo2_name(self):
         return self._get_tinfo_name(2)
+
+    def set_tinfo2(self, tinfo):
+        self._puts('TInfo2', tinfo)
+        return self
 
     def get_tinfo3(self):
         return self._gets('TInfo3')[0]
@@ -380,11 +392,19 @@ class SAUCE(object):
     def get_tinfo3_name(self):
         return self._get_tinfo_name(3)
 
+    def set_tinfo3(self, tinfo):
+        self._puts('TInfo3', tinfo)
+        return self
+
     def get_tinfo4(self):
         return self._gets('TInfo4')[0]
 
     def get_tinfo4_name(self):
         return self._get_tinfo_name(4)
+
+    def set_tinfo4(self, tinfo):
+        self._puts('TInfo4', tinfo)
+        return self
 
     def get_title(self):
         return self._gets('Title').strip()
@@ -414,13 +434,13 @@ class SAUCE(object):
     flags        = property(get_flags,    set_flags)
     flags_str    = property(get_flags_str)
     group        = property(get_group,    set_group)
-    tinfo1       = property(get_tinfo1)
+    tinfo1       = property(get_tinfo1,   set_tinfo1)
     tinfo1_name  = property(get_tinfo1_name)
-    tinfo2       = property(get_tinfo2)
+    tinfo2       = property(get_tinfo2,   set_tinfo2)
     tinfo2_name  = property(get_tinfo2_name)
-    tinfo3       = property(get_tinfo3)
+    tinfo3       = property(get_tinfo3,   set_tinfo3)
     tinfo3_name  = property(get_tinfo3_name)
-    tinfo4       = property(get_tinfo4)
+    tinfo4       = property(get_tinfo4,   set_tinfo4)
     tinfo4_name  = property(get_tinfo4_name)
     title        = property(get_title,    set_title)
     version      = property(get_version)
