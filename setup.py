@@ -3,7 +3,7 @@
 from distutils.core import setup
 
 setup(name='sauce',
-    version='1.1',
+    version='1.2',
     description='SAUCE record parser',
     author='Wijnand Modderman-Lenstra',
     author_email='maze@pyth0n.org',
