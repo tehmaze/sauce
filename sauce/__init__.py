@@ -23,11 +23,8 @@ __url__       = 'https://github.com/tehmaze/sauce'
 import datetime
 import os
 import struct
-try:
-    from cStringIO import StringIO
-except ImportError:
-    from StringIO import StringIO
-
+from io import StringIO
+from io import IOBase
 
 class SAUCE(object):
     '''
@@ -137,7 +134,7 @@ class SAUCE(object):
         assert (filename or data), 'Need either filename or record'
 
         if filename:
-            if type(filename) == file:
+            if isinstance(filename, IOBase):
                 self.filehand = filename
             else:
                 self.filehand = open(filename, 'rb')
@@ -160,7 +157,7 @@ class SAUCE(object):
             reads, rest = divmod(self._size - 128, 1024)
         else:
             reads, rest = divmod(self._size, 1024)
-        for x in xrange(0, reads):
+        for x in range(0, reads):
             yield self.filehand.read(1024)
         if rest:
             yield self.filehand.read(rest)
@@ -169,7 +166,7 @@ class SAUCE(object):
         if self._size >= 128:
             self.filehand.seek(self._size - 128)
             record = self.filehand.read(128)
-            if record.startswith('SAUCE'):
+            if record.startswith(b'SAUCE'):
                 self.filehand.seek(0)
                 return record, self.filehand.read(self._size - 128)
 
@@ -184,7 +181,7 @@ class SAUCE(object):
         data = self.record[offset:offset + size]
         data = struct.unpack(stype, data)
         if stype[-1] in 'cs':
-            return ''.join(data)
+            return b''.join(data)
         elif stype[-1] in 'BI' and len(stype) == 1:
             return data[0]
         else:
@@ -205,7 +202,7 @@ class SAUCE(object):
     def _template(self, key):
         index = self.templates.index(key)
         name, default, size, stype = self.template[index]
-        offset = sum([self.template[x][2] for x in xrange(0, index)])
+        offset = sum([self.template[x][2] for x in range(0, index)])
         return name, default, offset, size, stype
 
     def sauce(self):
@@ -299,7 +296,7 @@ class SAUCE(object):
         if filler is None:
             return ''
         else:
-            return filler.rstrip('\x00')
+            return filler.rstrip(b'\x00')
 
     def get_filetype(self):
         return self._gets('FileType')
@@ -449,31 +446,31 @@ class SAUCE(object):
 if __name__ == '__main__':
     import sys
     if len(sys.argv) != 2:
-        print >>sys.stderr, '%s <file>' % (sys.argv[0],)
+        print('{} <file>'.format(sys.argv[0]), file=sys.stderr)
         sys.exit(1)
     else:
         test = SAUCE(sys.argv[1])
 
         def show(sauce):
-            print 'Version.:', sauce.version
-            print 'Title...:', sauce.title
-            print 'Author..:', sauce.author
-            print 'Group...:', sauce.group
-            print 'Date....:', sauce.date
-            print 'FileSize:', sauce.filesize
-            print 'DataType:', sauce.datatype, sauce.datatype_str
-            print 'FileType:', sauce.filetype, sauce.filetype_str
-            print 'TInfo1..:', sauce.tinfo1
-            print 'TInfo2..:', sauce.tinfo2
-            print 'TInfo3..:', sauce.tinfo3
-            print 'TInfo4..:', sauce.tinfo4
-            print 'Flags...:', sauce.flags, sauce.flags_str
-            print 'Record..:', len(sauce.record), repr(sauce.record)
-            print 'Filler..:', sauce.filler_str
+            print('Version.:', sauce.version)
+            print('Title...:', sauce.title)
+            print('Author..:', sauce.author)
+            print('Group...:', sauce.group)
+            print('Date....:', sauce.date)
+            print('FileSize:', sauce.filesize)
+            print('DataType:', sauce.datatype, sauce.datatype_str)
+            print('FileType:', sauce.filetype, sauce.filetype_str)
+            print('TInfo1..:', sauce.tinfo1)
+            print('TInfo2..:', sauce.tinfo2)
+            print('TInfo3..:', sauce.tinfo3)
+            print('TInfo4..:', sauce.tinfo4)
+            print('Flags...:', sauce.flags, sauce.flags_str)
+            print('Record..:', len(sauce.record), repr(sauce.record))
+            print('Filler..:', sauce.filler_str)
 
         if test.record:
             show(test)
         else:
-            print 'No SAUCE record found'
+            print('No SAUCE record found')
             test = SAUCE(data=test.sauce())
             show(test)
