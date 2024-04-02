@@ -17,7 +17,7 @@ Parser for SAUCE or Standard Architecture for Universal Comment Extensions.
 __author__    = 'Wijnand Modderman-Lenstra <maze@pyth0n.org>'
 __copyright__ = '(C) 2006-2012 Wijnand Modderman-Lenstra'
 __license__   = 'LGPL'
-__version__   = '1.2'
+__version__   = '1.3'
 __url__       = 'https://github.com/tehmaze/sauce'
 
 import datetime
