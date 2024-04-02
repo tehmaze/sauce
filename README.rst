@@ -49,3 +49,33 @@ Modify metadata of an ANSI file::
     >>> piece = SAUCE('artwork.ans')
     >>> piece.date = datetime.datetime.now()
     >>> piece.write('artwork.new')
+
+
+History
+=======
+
+- 1.3 2024-04-02: Updated for python 3 support
+  `PR #2 <https://github.com/tehmaze/sauce/pull/2>`_
+  by `@mainframed <https://github.com/mainframed>`_
+
+- 1.2 2016-06-06: Methods for setting datatype, filetype, tinfos
+  `PR #1 <https://github.com/tehmaze/sauce/pull/1>`_
+  by `@Kirkman <https://github.com/Kirkman>`_
+
+- 1.1 2014-07-11: Fixed a boundary check issue
+  by `@tehmaze <https://github.com/tehmaze>`_
+
+- 1.0 2014-06-18: Fix field sizes of SAUCE record
+  by `@tehmaze <https://github.com/tehmaze>`_
+
+- 0.2.1 2014-06-18 Add 'data' attribute, setters return self
+  by `@tehmaze <https://github.com/tehmaze>`_
+
+- 0.2.0 2014-06-10 Added documentation
+  by `@tehmaze <https://github.com/tehmaze>`_
+
+- 0.1.1 2012-08-07 Fixed setup script
+  by `@tehmaze <https://github.com/tehmaze>`_
+
+- 0.1 2009-05-20 Initial release
+  by `@tehmaze <https://github.com/tehmaze>`_
