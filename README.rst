@@ -54,6 +54,10 @@ Modify metadata of an ANSI file::
 History
 =======
 
+- 1.4 2025-11-18: Complete Python 3 bytes/str compatibility fix
+  `Issue #4 <https://github.com/tehmaze/sauce/issues/4>`_
+  Fixed struct.pack() errors, string encoding, and removed Python 2 type references
+
 - 1.3 2024-04-02: Updated for python 3 support
   `PR #2 <https://github.com/tehmaze/sauce/pull/2>`_
   by `@mainframed <https://github.com/mainframed>`_
