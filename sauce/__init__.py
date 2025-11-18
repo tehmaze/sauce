@@ -17,13 +17,13 @@ Parser for SAUCE or Standard Architecture for Universal Comment Extensions.
 __author__    = 'Wijnand Modderman-Lenstra <maze@pyth0n.org>'
 __copyright__ = '(C) 2006-2012 Wijnand Modderman-Lenstra'
 __license__   = 'LGPL'
-__version__   = '1.3'
+__version__   = '1.4'
 __url__       = 'https://github.com/tehmaze/sauce'
 
 import datetime
 import os
 import struct
-from io import StringIO
+from io import BytesIO
 from io import IOBase
 
 class SAUCE(object):
@@ -64,12 +64,12 @@ class SAUCE(object):
     # template
     template  = (
         # name           default         size type
-        ('SAUCE',        'SAUCE',        5,   '5s'),
-        ('SAUCEVersion', '00',           2,   '2s'),
-        ('Title',        '\x00' * 35,   35,   '35s'),
-        ('Author',       '\x00' * 20,   20,   '20s'),
-        ('Group',        '\x00' * 20,   20,   '20s'),
-        ('Date',         '\x00' * 8,     8,   '8s'),
+        ('SAUCE',        b'SAUCE',       5,   '5s'),
+        ('SAUCEVersion', b'00',          2,   '2s'),
+        ('Title',        b'\x00' * 35,  35,   '35s'),
+        ('Author',       b'\x00' * 20,  20,   '20s'),
+        ('Group',        b'\x00' * 20,  20,   '20s'),
+        ('Date',         b'\x00' * 8,    8,   '8s'),
         ('FileSize',     [0],            4,   'I'),
         ('DataType',     [0],            1,   'B'),
         ('FileType',     [0],            1,   'B'),
@@ -79,7 +79,7 @@ class SAUCE(object):
         ('TInfo4',       [0],            2,   'H'),
         ('Comments',     [0],            1,   'B'),
         ('Flags',        [0],            1,   'B'),
-        ('Filler',       ['\x00'] * 22, 22,   '22c'),
+        ('Filler',       [b'\x00'] * 22, 22,   '22c'),
     )
     templates = [t[0] for t in template]
     datatypes = ['None', 'Character', 'Graphics', 'Vector', 'Sound',
@@ -141,12 +141,15 @@ class SAUCE(object):
             self._size = os.path.getsize(self.filehand.name)
         else:
             self._size = len(data)
-            self.filehand = StringIO(data)
+            self.filehand = BytesIO(data)
 
         self.record, self.data = self._read()
 
     def __str__(self):
-        return ''.join(list(self._read_file()))
+        return repr(self)
+
+    def __bytes__(self):
+        return b''.join(list(self._read_file()))
 
     def _read_file(self):
         # Buffered reader (generator), reads the original file without SAUCE
@@ -192,7 +195,7 @@ class SAUCE(object):
         #print offset, size, data, repr(struct.pack(stype, data))
         if self.record is None:
             self.record = self.sauce()
-        self.record = ''.join([
+        self.record = b''.join([
             self.record[:offset],
             struct.pack(stype, data),
             self.record[offset + size:]
@@ -212,7 +215,7 @@ class SAUCE(object):
         if self.record:
             return self.record
         else:
-            data = 'SAUCE'
+            data = b'SAUCE'
             for name, default, size, stype in self.template[1:]:
                 #print stype, default
                 if stype[-1] in 's':
@@ -225,18 +228,23 @@ class SAUCE(object):
         '''
         Save the file including SAUCE data to the given file(handle).
         '''
-        filename = type(filename) == file and filename or open(filename, 'wb')
+        fh = filename if isinstance(filename, IOBase) else open(filename, 'wb')
         for part in self._read_file():
-            filename.write(part)
-        filename.write(self.sauce())
-        return filename
+            fh.write(part)
+        fh.write(self.sauce())
+        return fh
 
     # SAUCE meta data
 
     def get_author(self):
-        return self._gets('Author').strip()
+        result = self._gets('Author')
+        if result is not None:
+            return result.strip().decode('latin-1')
+        return None
 
     def set_author(self, author):
+        if isinstance(author, str):
+            author = author.encode('latin-1')
         self._puts('Author', author)
         return self
 
@@ -267,7 +275,10 @@ class SAUCE(object):
         return self
 
     def get_date(self):
-        return self._gets('Date')
+        result = self._gets('Date')
+        if result is not None:
+            return result.decode('latin-1')
+        return None
 
     def get_date_str(self, format='%Y%m%d'):
         return datetime.datetime.strptime(self.date, format)
@@ -277,8 +288,10 @@ class SAUCE(object):
             date = datetime.datetime.now().strftime(format)
         elif type(date) in [datetime.date, datetime.datetime]:
             date = date.strftime(format)
-        elif type(date) in [int, long, float]:
+        elif type(date) in [int, float]:
             date = datetime.datetime.fromtimestamp(date).strftime(format)
+        if isinstance(date, str):
+            date = date.encode('latin-1')
         self._puts('Date', date)
         return self
 
@@ -345,9 +358,14 @@ class SAUCE(object):
             return None
 
     def get_group(self):
-        return self._gets('Group').strip()
+        result = self._gets('Group')
+        if result is not None:
+            return result.strip().decode('latin-1')
+        return None
 
     def set_group(self, group):
+        if isinstance(group, str):
+            group = group.encode('latin-1')
         self._puts('Group', group)
         return self
 
@@ -404,16 +422,26 @@ class SAUCE(object):
         return self
 
     def get_title(self):
-        return self._gets('Title').strip()
+        result = self._gets('Title')
+        if result is not None:
+            return result.strip().decode('latin-1')
+        return None
 
     def set_title(self, title):
+        if isinstance(title, str):
+            title = title.encode('latin-1')
         self._puts('Title', title)
         return self
 
     def get_version(self):
-        return self._gets('SAUCEVersion')
+        result = self._gets('SAUCEVersion')
+        if result is not None:
+            return result.decode('latin-1')
+        return None
 
     def set_version(self, version):
+        if isinstance(version, str):
+            version = version.encode('latin-1')
         self._puts('SAUCEVersion', version)
         return self
 
